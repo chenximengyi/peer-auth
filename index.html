@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="description" content="本地离线页面，生成多人共用的 TOTP 二维码，用于通话时的辅助核验。" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230d6efd'/%3E%3Ctext x='16' y='23' font-family='system-ui,sans-serif' font-size='17' font-weight='600' fill='%23fff' text-anchor='middle'%3EP%3C/text%3E%3C/svg%3E"
+    />
+    <title>PeerAuth</title>
+    <!-- 限制资源加载来源；file: 用于支持本地打开。
+         CSP 无法防御源文件或托管内容本身被篡改。 -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; script-src 'self' file:; style-src 'self' file:; img-src 'self' data:; connect-src 'none'; base-uri 'none'; form-action 'none'"
+    />
+    <meta name="referrer" content="no-referrer" />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main class="container">
+      <h1>PeerAuth</h1>
+
+      <ol class="steps">
+        <li>两人或更多人，坐在同一台可信电脑前，本地离线打开本页面</li>
+        <li>起一个名字，然后点击「生成」</li>
+        <li>页面会生成一个共用的 TOTP 二维码</li>
+        <li>所有参与者用各自的手机验证器应用（如 Google Authenticator、微软 Authenticator）扫描同一个二维码，确认验证码一致后关闭本页面</li>
+        <li>将来通话时，可将手机应用中的 6 位 TOTP 代码用于辅助核验。代码一致不能证明对方是真人或某个特定的人，也不能防止代码被转发或原样回传</li>
+      </ol>
+
+      <p class="note">
+        所有参与者共用同一密钥，无法通过验证码区分成员。请保护配对电脑和各自的手机，避免保存或分享二维码、密钥截图；任何人取得密钥后都能生成相同的验证码。涉及重要操作时，请通过事先约定的可信渠道另行确认。
+      </p>
+
+      <hr />
+
+      <form id="generateForm" autocomplete="off">
+        <label class="form-label" for="name">名称</label>
+        <input id="name" class="form-control" type="text" maxlength="100" required />
+        <button id="generateBtn" class="btn btn-primary" type="submit" disabled>生成</button>
+      </form>
+      <p id="generateError" class="error" role="alert" aria-atomic="true" hidden></p>
+
+      <section id="qrSection" class="qr-section" hidden>
+        <div class="qr-row">
+          <div class="qr-column">
+            <p>请扫描以下的二维码：</p>
+            <canvas id="qrcode" class="qrcode" width="0" height="0" role="img" aria-label="共用的 TOTP 二维码"></canvas>
+          </div>
+          <div class="qr-column">
+            <h2>验证码</h2>
+            <p id="otpDisplay" class="otp-display" aria-live="polite">------</p>
+            <p class="expiry">剩余时间 <span id="countdown">30</span> 秒</p>
+          </div>
+        </div>
+
+        <p class="note">
+          如果二维码扫不出来，也可以把下面这段 base32 格式的密钥手动输入到验证器应用里：
+        </p>
+        <p id="secret" class="secret"></p>
+      </section>
+    </main>
+
+    <script src="./js/totp.js"></script>
+    <script src="./js/qr.js"></script>
+    <script src="./js/app.js"></script>
+  </body>
+</html>
